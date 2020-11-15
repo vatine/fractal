@@ -2,13 +2,16 @@
 package halley
 
 import (
+	"image"
 	"math/cmplx"
 
+	log "github.com/sirupsen/logrus"
+	
 	"github.com/vatine/fractals/pkg/poly"
 	"github.com/vatine/fractals/pkg/utils"
 )
 
-func Halley(roots []complex128, f poly.Poly, side, maxIter int, zmin, zmax complex128) {
+func Halley(roots []complex128, side, maxIter int, zmin, zmax complex128) image.Image {
 	out := image.NewRGBA(image.Rect(0, 0, side-1, side-1))
 	
 	dr := (real(zmax) - real(zmin)) / float64(side)
@@ -18,7 +21,7 @@ func Halley(roots []complex128, f poly.Poly, side, maxIter int, zmin, zmax compl
 	
 	f := poly.New(roots...)
 	p := f.Deriv()
-	b := p.deriv
+	b := p.Deriv()
 	deltaHue := 360.0 / float64(len(roots))
 
 	for r := 0; r < side; r++ {
@@ -26,7 +29,6 @@ func Halley(roots []complex128, f poly.Poly, side, maxIter int, zmin, zmax compl
 			z := zmin + complex(float64(r) * dr, float64(i) * di)
 			iters, root := iter(roots, z, f, p, b, maxIter)
 			if root >= 0 {
-				logged--
 				log.WithFields(log.Fields{
 					"iters": iters,
 					"root": root,
@@ -47,7 +49,7 @@ func Halley(roots []complex128, f poly.Poly, side, maxIter int, zmin, zmax compl
 	return out	
 }
 
-func iter(roots []complex128, z complex128, f, fprim, fbis poly.Poly, max int) {
+func iter(roots []complex128, z complex128, f, fprim, fbis poly.Poly, max int) (int, int) {
 	c := 0
 	root := -1
 	for root == -1 {
@@ -73,8 +75,8 @@ func iter(roots []complex128, z complex128, f, fprim, fbis poly.Poly, max int) {
 		}
 
 		// We're not done, so...
-		fpx := fprim.Eval(x)
-		fbx := fbis.Eval(x)
+		fpx := fprim.Eval(z)
+		fbx := fbis.Eval(z)
 
 		
 		if fpx == 0.0 && fbx == 0.0 {
@@ -83,13 +85,13 @@ func iter(roots []complex128, z complex128, f, fprim, fbis poly.Poly, max int) {
 		}
 
 		num := 2 * fx * fpx
-		den := 2 * cmplx.Abs(fpx) * cmplx(fpx) - 2 * fx * fbx
+		den := complex(2 * cmplx.Abs(fpx) * cmplx.Abs(fpx), 0) - 2 * fx * fbx
 		if den == 0.0 {
 			// Zero denominator, we can no longer make progress
 			return max, -1
 		}
 
-		z := z - (num / den)
+		z = z - (num / den)
 		c++
 	}
 

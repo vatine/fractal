@@ -1,6 +1,6 @@
 module github.com/vatine/fractals
 
-go 1.14
+go 1.15
 
 require (
 	github.com/sirupsen/logrus v1.7.0
