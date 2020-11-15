@@ -2,7 +2,7 @@
 package halley
 
 import (
-	"math/cmplex"
+	"math/cmplx"
 
 	"github.com/vatine/fractals/pkg/poly"
 	"github.com/vatine/fractals/pkg/utils"
